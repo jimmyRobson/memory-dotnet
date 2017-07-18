@@ -2,12 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Memory.API.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.Webpack;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 
 namespace memory_dotnet
 {
@@ -20,6 +24,10 @@ namespace memory_dotnet
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
+            if (env.IsDevelopment())
+            {
+                builder.AddUserSecrets<Startup>();
+            }
             Configuration = builder.Build();
         }
 
@@ -28,12 +36,18 @@ namespace memory_dotnet
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var connectionString = Configuration["connectionStrings:memoryDBConnectionString"];
+            services.AddDbContext<MemoryContext>(o => o.UseSqlServer(connectionString));
+            services.AddIdentity<GameUser, IdentityRole>()
+                .AddEntityFrameworkStores<MemoryContext>();
+            // services.AddScoped<UserManager<GameUser>>();
             // Add framework services.
             services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory,
+                                MemoryContext memoryContext, UserManager<GameUser> userManager)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
@@ -49,9 +63,8 @@ namespace memory_dotnet
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-
             app.UseStaticFiles();
-
+            app.UseIdentity();
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -62,6 +75,10 @@ namespace memory_dotnet
                     name: "spa-fallback",
                     defaults: new { controller = "Home", action = "Index" });
             });
+            if (env.IsDevelopment())
+            {
+                memoryContext.EnsureSeedDataForContext(userManager).Wait();
+            }
         }
     }
 }
