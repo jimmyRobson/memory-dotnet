@@ -15,9 +15,11 @@ namespace memory_dotnet
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("hosting.js", optional:true)
+                .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
             var host = new WebHostBuilder()
                 .UseKestrel()
+                .UseUrls("https://*:8080")
                 .UseConfiguration(config)
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
