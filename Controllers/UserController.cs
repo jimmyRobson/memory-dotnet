@@ -30,23 +30,17 @@ namespace Memory.API.Controllers
             if(userModel == null){
                 return BadRequest();
             }
+            if(!ModelState.IsValid)
+            {
+                return new UnprocessableEntityObjectResult(ModelState);
+            }
             var userEntity = Mapper.Map<GameUser>(userModel);
             var userResult = _memoryRepository.AddGameUser(userEntity, userModel.Password).Result;
             if (!userResult.Succeeded)
             {
                 if (userResult.Errors != null)
                 {
-                    foreach (IdentityError error in userResult.Errors)
-                    {
-                        if(error.Code == "DuplicateUserName")
-                        {
-                            ModelState.AddModelError(error.Code, "An account already exists for this email.");
-                        }
-                        else
-                        {
-                            ModelState.AddModelError(error.Code, error.Description);
-                        }
-                    }
+                    this.AddErrors(userResult);
                 }
                 return new UnprocessableEntityObjectResult(ModelState);
             }
@@ -57,25 +51,23 @@ namespace Memory.API.Controllers
         [Authorize]
         public IActionResult GetUser(string id)
         {
-            var userName = this.User.Identity.Name; // Check to make sure this happens.
-            GameUser repoUser = _memoryRepository.GetCurrentUser(userName).Result;
-            if(id != "self" && id != repoUser.Id)
-            {
-                if(this.User.IsInRole("Admin"))
-                {
-                    repoUser = _memoryRepository.GetUser(id).Result;
-                }
-                else
-                {
-                    return Forbid();
-                }
-            }
+            var userName = this.User.Identity.Name;
+            GameUser repoUser = (id == "self") ?
+                                 _memoryRepository.GetCurrentUser(userName).Result:
+                                 _memoryRepository.GetUser(id).Result;
             if(repoUser == null)
             {
                     return NotFound();
             }
-            var user = Mapper.Map<UserModel>(repoUser);
-            return Ok(user);
+            if(id == "self" || repoUser.UserName == userName || this.User.IsInRole("Admin"))
+            {
+                var user = Mapper.Map<UserModel>(repoUser);
+                return Ok(user);
+            }
+            else
+            {
+                return Forbid();
+            }
         }
         [Authorize(Roles = "Admin")]
         public IActionResult GetUsers()
@@ -89,28 +81,15 @@ namespace Memory.API.Controllers
         [Authorize]
         public IActionResult DeleteUser(string id)
         {
-            var userName = this.User.Identity.Name; // Check to make sure this happens.
-            GameUser repoUser;
-            if(this.User.IsInRole("Admin"))
-            {
-                if(id == "self")
-                {
-                     repoUser = _memoryRepository.GetCurrentUser(userName).Result;
-                }
-                else
-                {
-                    repoUser = _memoryRepository.GetUser(id).Result;
-                }
-            }
-            else
-            { // Not Admin can only delete self.
-                 repoUser = _memoryRepository.GetCurrentUser(userName).Result;
-            }
+            var userName = this.User.Identity.Name;
+            GameUser repoUser = (id == "self") ?
+                                 _memoryRepository.GetCurrentUser(userName).Result:
+                                 _memoryRepository.GetUser(id).Result;
             if(repoUser == null)
             {
                 return NotFound();
             }
-            if(id == "self" || id == repoUser.Id || this.User.IsInRole("Admin"))
+            if(id == "self" || repoUser.UserName == userName || this.User.IsInRole("Admin"))
             { // Is deleting self or is Admin
                 var result = _memoryRepository.DeleteUser(repoUser).Result; 
                 if(!result.Succeeded)
@@ -122,6 +101,57 @@ namespace Memory.API.Controllers
             else
             {
                 return Forbid();
+            }
+        }
+        [HttpPut("{id}")]
+        public IActionResult UpdateUser(string id, [FromBody]UserUpdateModel userModel)
+        {
+            if(userModel == null){
+                return BadRequest();
+            }
+            var userName = this.User.Identity.Name;
+            var repoUser = (id == "self") ?
+                                 _memoryRepository.GetCurrentUser(userName).Result:
+                                 _memoryRepository.GetUser(id).Result;
+            if(repoUser == null)
+            {
+                return NotFound();
+            }
+            if(!ModelState.IsValid)
+            {
+                return new UnprocessableEntityObjectResult(ModelState);
+            }
+            if(id == "self" || repoUser.UserName == userName || this.User.IsInRole("Admin"))
+            { // Is deleting self or is Admin
+                Mapper.Map(userModel, repoUser);
+                var userResult = _memoryRepository.UpdateGameUser(repoUser).Result;
+                if (!userResult.Succeeded)
+                {
+                    if (userResult.Errors != null)
+                    {
+                        this.AddErrors(userResult);
+                    }
+                    return new UnprocessableEntityObjectResult(ModelState);
+                }
+                return NoContent();
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        private void AddErrors(IdentityResult result)
+        {
+            foreach (IdentityError error in result.Errors)
+            {
+                if(error.Code == "DuplicateUserName")
+                {
+                    ModelState.AddModelError(error.Code, "An account already exists for this email.");
+                }
+                else
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
             }
         }
 

@@ -121,7 +121,10 @@ namespace memory_dotnet
             app.UseIdentity();
             AutoMapper.Mapper.Initialize(cfg =>{
                 cfg.CreateMap<Memory.API.Entities.GameUser, Memory.API.Models.UserModel>();
-                cfg.CreateMap<Memory.API.Models.UserCreateModel,Memory.API.Entities.GameUser>()
+                cfg.CreateMap<Memory.API.Models.UserCreateModel, Memory.API.Entities.GameUser>()
+                    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
+                        $"{src.Email}"));
+                cfg.CreateMap<Memory.API.Models.UserUpdateModel, Memory.API.Entities.GameUser>()
                     .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
                         $"{src.Email}"));
             });

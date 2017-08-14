@@ -48,5 +48,9 @@ namespace Memory.API.Services
             }
             return await _userManager.DeleteAsync(user);
         }
+        public async Task<IdentityResult> UpdateGameUser(GameUser gameUser)
+        {
+            return await _userManager.UpdateAsync(gameUser);
+        }
     }
 }

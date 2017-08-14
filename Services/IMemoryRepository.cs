@@ -13,5 +13,6 @@ namespace Memory.API.Services
         Task<GameUser> GetUser(string id);
         List<GameUser> GetUsers();
         Task<IdentityResult> DeleteUser(GameUser user);
+        Task<IdentityResult> UpdateGameUser(GameUser user);
     }
 }
