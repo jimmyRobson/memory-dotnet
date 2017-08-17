@@ -8,7 +8,7 @@ using Memory.API.Entities;
 namespace memorydotnet.Migrations
 {
     [DbContext(typeof(MemoryContext))]
-    [Migration("20170716235716_InitialCreate")]
+    [Migration("20170814234227_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -19,11 +19,9 @@ namespace memorydotnet.Migrations
 
             modelBuilder.Entity("Memory.API.Entities.GameScore", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
+                    b.Property<string>("Id");
 
-                    b.Property<string>("GameUserId")
-                        .IsRequired();
+                    b.Property<string>("GameUserId");
 
                     b.Property<int>("Score");
 
@@ -214,8 +212,7 @@ namespace memorydotnet.Migrations
                 {
                     b.HasOne("Memory.API.Entities.GameUser", "GameUser")
                         .WithMany("GameScores")
-                        .HasForeignKey("GameUserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("GameUserId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRoleClaim<string>", b =>

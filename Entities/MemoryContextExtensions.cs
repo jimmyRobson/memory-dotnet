@@ -24,7 +24,7 @@ namespace Memory.API.Entities
                 GameScores = new List<GameScore>()
                 {
                     new GameScore(){
-                        Id = new Guid("25320c5e-f58a-4b1f-b63a-8ee07a840bdf"),
+                        Id = "25320c5e-f58a-4b1f-b63a-8ee07a840bdf",
                         Score = 80,
                         ScoreDate = new DateTime()
                     }

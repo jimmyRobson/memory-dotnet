@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Memory.API.Entities;
 using Memory.API.Helpers;
 using Memory.API.Models;
+using Memory.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,23 +13,20 @@ namespace Memory.API.Controllers
 {
     public class AuthController : Controller
     {
-        private MemoryContext _context;
-        private SignInManager<GameUser> _signInManager;
-        private ILogger<AuthController> _logger;
+        private IMemoryRepository _memoryRepository;
 
-        public AuthController(MemoryContext context, SignInManager<GameUser> signInManager, ILogger<AuthController> logger)
+        public AuthController(IMemoryRepository memoryRepository)
         {
-            _context = context;
-            _signInManager = signInManager;
+            _memoryRepository = memoryRepository;
         }
         [HttpPost("api/auth/login")]
-        public async Task<IActionResult> Login([FromBody] CredentialModel model)
+        public IActionResult Login([FromBody] CredentialModel model)
         {
             if(!ModelState.IsValid)
             {
                 return new UnprocessableEntityObjectResult(ModelState);
             }
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, true, false);
+            var result = _memoryRepository.SignIn(model.Email, model.Password).Result;
             if (result.Succeeded)
             {
                 return Ok();
@@ -38,9 +36,9 @@ namespace Memory.API.Controllers
         }
         [Authorize]
         [HttpPost("api/auth/logout")]
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
-            await _signInManager.SignOutAsync();
+            _memoryRepository.SignOut();
             return Ok();
         }
     }

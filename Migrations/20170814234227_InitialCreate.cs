@@ -90,8 +90,8 @@ namespace memorydotnet.Migrations
                 name: "GameScores",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
-                    GameUserId = table.Column<string>(nullable: false),
+                    Id = table.Column<string>(nullable: false),
+                    GameUserId = table.Column<string>(nullable: true),
                     Score = table.Column<int>(nullable: false),
                     ScoreDate = table.Column<DateTime>(nullable: false)
                 },
@@ -103,7 +103,7 @@ namespace memorydotnet.Migrations
                         column: x => x.GameUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(

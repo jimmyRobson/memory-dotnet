@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Memory.API.Entities;
 using Microsoft.AspNetCore.Http;
@@ -21,15 +22,31 @@ namespace Memory.API.Services
             _userManager = userManager;
             _signInManager = signInManager;
         }
+        public async Task<SignInResult> SignIn(string email, string password )
+        {
+            return await _signInManager.PasswordSignInAsync(email, password, true, false);
+        }
+        public async void SignOut()
+        {
+            await _signInManager.SignOutAsync();
+        }
         public async Task<IdentityResult> AddGameUser(GameUser gameUser, string password)
         {
+            if (gameUser.GameScores.Any())
+            {
+                foreach (var score in gameUser.GameScores)
+                {
+                    score.Id = Guid.NewGuid().ToString();
+                    score.ScoreDate = DateTime.Now;
+                }
+            }
             return await _userManager.CreateAsync(gameUser, password);
             
             // return userResult;
         }
-        public async Task<GameUser> GetCurrentUser(string currentUserName)
+        public string GetUserId(ClaimsPrincipal user)
         {
-            return await _userManager.FindByNameAsync(currentUserName);
+            return _userManager.GetUserId(user);
         }
         public async Task<GameUser> GetUser(string id)
         {
@@ -51,6 +68,37 @@ namespace Memory.API.Services
         public async Task<IdentityResult> UpdateGameUser(GameUser gameUser)
         {
             return await _userManager.UpdateAsync(gameUser);
+        }
+        public IEnumerable<GameScore> GetScoresForUser(string userId)
+        {
+            return _context.GameScores
+                        .Where(s => s.GameUserId == userId).OrderBy(s => s.ScoreDate).ToList();
+        }
+        public GameScore GetScoreForUser(string userId, string scoreId)
+        {
+            return _context.GameScores
+                        .Where(s => s.GameUserId == userId && s.Id == scoreId).FirstOrDefault();
+        }
+        public void CreateScoreForUser(GameUser user, GameScore score)
+        {
+            if(score.Id == null)
+            {
+                score.Id = Guid.NewGuid().ToString();
+            }
+            score.ScoreDate = DateTime.Now;
+            user.GameScores.Add(score);
+        }
+        public void UpdateScoreForUser(GameScore score)
+        {
+            score.ScoreDate = DateTime.Now;
+        }
+        public void DeleteScore(GameScore score)
+        {
+            _context.GameScores.Remove(score);
+        }
+        public bool Save()
+        {
+            return (_context.SaveChanges() >= 0);
         }
     }
 }

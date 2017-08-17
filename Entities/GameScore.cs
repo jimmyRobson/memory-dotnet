@@ -7,7 +7,7 @@ namespace Memory.API.Entities
     public class GameScore
     {
         [Key]       
-        public Guid Id { get; set; }
+        public string Id { get; set; }
 
         [Required]
         public int Score { get; set; }
@@ -15,8 +15,8 @@ namespace Memory.API.Entities
         [Required]
         public DateTime ScoreDate { get; set; }
 
-        [Required]
         [ForeignKey("GameUserId")]
         public GameUser GameUser { get; set; }
+        public string GameUserId { get; set; }
     }
 }

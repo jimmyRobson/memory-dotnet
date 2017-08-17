@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Memory.API.Entities;
+using Memory.API.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.Webpack;
@@ -120,13 +121,16 @@ namespace memory_dotnet
             app.UseStaticFiles();
             app.UseIdentity();
             AutoMapper.Mapper.Initialize(cfg =>{
-                cfg.CreateMap<Memory.API.Entities.GameUser, Memory.API.Models.UserModel>();
-                cfg.CreateMap<Memory.API.Models.UserCreateModel, Memory.API.Entities.GameUser>()
+                cfg.CreateMap<GameUser, UserModel>();
+                cfg.CreateMap<UserCreateModel, GameUser>()
                     .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
                         $"{src.Email}"));
-                cfg.CreateMap<Memory.API.Models.UserUpdateModel, Memory.API.Entities.GameUser>()
+                cfg.CreateMap<UserUpdateModel, GameUser>()
                     .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
                         $"{src.Email}"));
+                cfg.CreateMap<GameScore, ScoreModel>();
+                cfg.CreateMap<ScoreCreateModel, GameScore>();
+                cfg.CreateMap<ScoreUpdateModel, GameScore>();
             });
             app.UseMvc(routes =>
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Memory.API.Entities;
+using Memory.API.Filters;
 using Memory.API.Helpers;
 using Memory.API.Models;
 using Memory.API.Services;
@@ -17,12 +18,10 @@ namespace Memory.API.Controllers
     public class UserController : Controller
     {
         private IMemoryRepository _memoryRepository;
-        private ILogger<UserController> _logger;
 
-        public UserController( IMemoryRepository memoryRepository, ILogger<UserController> logger)
+        public UserController(IMemoryRepository memoryRepository)
         {
             _memoryRepository = memoryRepository;
-            _logger = logger;
         }
         [HttpPost]
         public IActionResult CreateUser([FromBody]UserCreateModel userModel)
@@ -47,73 +46,63 @@ namespace Memory.API.Controllers
             var userToReturn = Mapper.Map<UserModel>(userEntity);
             return CreatedAtRoute("GetUser", new { id = userToReturn.Id}, userToReturn);
         }
-        [HttpGet("{id}", Name = "GetUser")]
         [Authorize]
+        [MemberAuthorize]
+        [HttpGet("{id}", Name = "GetUser")]
         public IActionResult GetUser(string id)
         {
-            var userName = this.User.Identity.Name;
-            GameUser repoUser = (id == "self") ?
-                                 _memoryRepository.GetCurrentUser(userName).Result:
-                                 _memoryRepository.GetUser(id).Result;
-            if(repoUser == null)
+            if(id == "self")
+                id = _memoryRepository.GetUserId(this.User);
+            
+            var userEntity = _memoryRepository.GetUser(id).Result;
+            if(userEntity == null)
             {
                     return NotFound();
             }
-            if(id == "self" || repoUser.UserName == userName || this.User.IsInRole("Admin"))
-            {
-                var user = Mapper.Map<UserModel>(repoUser);
-                return Ok(user);
-            }
-            else
-            {
-                return Forbid();
-            }
+            var user = Mapper.Map<UserModel>(userEntity);
+            return Ok(user);
         }
         [Authorize(Roles = "Admin")]
         public IActionResult GetUsers()
         {
-            var usersFromRepo = _memoryRepository.GetUsers();
-            var authors = Mapper.Map<IEnumerable<UserModel>>(usersFromRepo);
-
+            var userEntities = _memoryRepository.GetUsers();
+            var authors = Mapper.Map<IEnumerable<UserModel>>(userEntities);
             return Ok(authors);
         }
-        [HttpDelete("{id}")]
+        
         [Authorize]
+        [MemberAuthorize]
+        [HttpDelete("{id}")]
         public IActionResult DeleteUser(string id)
         {
-            var userName = this.User.Identity.Name;
-            GameUser repoUser = (id == "self") ?
-                                 _memoryRepository.GetCurrentUser(userName).Result:
-                                 _memoryRepository.GetUser(id).Result;
-            if(repoUser == null)
+            if(id == "self")
+                id = _memoryRepository.GetUserId(this.User);
+            
+            var userEntity = _memoryRepository.GetUser(id).Result;
+            if(userEntity == null)
             {
                 return NotFound();
             }
-            if(id == "self" || repoUser.UserName == userName || this.User.IsInRole("Admin"))
-            { // Is deleting self or is Admin
-                var result = _memoryRepository.DeleteUser(repoUser).Result; 
-                if(!result.Succeeded)
-                {
-                    throw new Exception($"Deleting user {id} failed on save.");
-                }
-                return NoContent();
-            }
-            else
+            var result = _memoryRepository.DeleteUser(userEntity).Result; 
+            if(!result.Succeeded)
             {
-                return Forbid();
+                throw new Exception($"Deleting user {id} failed on save.");
             }
+            return NoContent();
         }
+        [Authorize]
+        [MemberAuthorize]
         [HttpPut("{id}")]
-        public IActionResult UpdateUser(string id, [FromBody]UserUpdateModel userModel)
+        public IActionResult UpdateUser(string id, [FromBody]UserUpdateModel userUpdateModel)
         {
-            if(userModel == null){
+            if(userUpdateModel == null){
                 return BadRequest();
             }
-            var userName = this.User.Identity.Name;
-            var repoUser = (id == "self") ?
-                                 _memoryRepository.GetCurrentUser(userName).Result:
-                                 _memoryRepository.GetUser(id).Result;
-            if(repoUser == null)
+            if(id == "self")
+                id = _memoryRepository.GetUserId(this.User);
+            
+            var userEntity = _memoryRepository.GetUser(id).Result;
+            if(userEntity == null)
             {
                 return NotFound();
             }
@@ -121,24 +110,17 @@ namespace Memory.API.Controllers
             {
                 return new UnprocessableEntityObjectResult(ModelState);
             }
-            if(id == "self" || repoUser.UserName == userName || this.User.IsInRole("Admin"))
-            { // Is deleting self or is Admin
-                Mapper.Map(userModel, repoUser);
-                var userResult = _memoryRepository.UpdateGameUser(repoUser).Result;
-                if (!userResult.Succeeded)
-                {
-                    if (userResult.Errors != null)
-                    {
-                        this.AddErrors(userResult);
-                    }
-                    return new UnprocessableEntityObjectResult(ModelState);
-                }
-                return NoContent();
-            }
-            else
+            Mapper.Map(userUpdateModel, userEntity);
+            var userResult = _memoryRepository.UpdateGameUser(userEntity).Result;
+            if (!userResult.Succeeded)
             {
-                return Forbid();
+                if (userResult.Errors != null)
+                {
+                    this.AddErrors(userResult);
+                }
+                return new UnprocessableEntityObjectResult(ModelState);
             }
+            return NoContent();
         }
         private void AddErrors(IdentityResult result)
         {
@@ -154,6 +136,5 @@ namespace Memory.API.Controllers
                 }
             }
         }
-
     }
 }

@@ -18,11 +18,9 @@ namespace memorydotnet.Migrations
 
             modelBuilder.Entity("Memory.API.Entities.GameScore", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
+                    b.Property<string>("Id");
 
-                    b.Property<string>("GameUserId")
-                        .IsRequired();
+                    b.Property<string>("GameUserId");
 
                     b.Property<int>("Score");
 
@@ -213,8 +211,7 @@ namespace memorydotnet.Migrations
                 {
                     b.HasOne("Memory.API.Entities.GameUser", "GameUser")
                         .WithMany("GameScores")
-                        .HasForeignKey("GameUserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("GameUserId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRoleClaim<string>", b =>
