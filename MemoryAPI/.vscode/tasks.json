@@ -7,7 +7,7 @@
         {
             "taskName": "build",
             "args": [
-                "${workspaceRoot}/MemoryAPI/memory-dotnet.csproj"
+                "${workspaceRoot}/memory-dotnet.csproj"
             ],
             "isBuildCommand": true,
             "problemMatcher": "$msCompile"
