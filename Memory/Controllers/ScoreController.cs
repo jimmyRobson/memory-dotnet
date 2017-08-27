@@ -18,9 +18,12 @@ namespace Memory.API.Controllers
     public class ScoreController: Controller
     {
         private IMemoryRepository _memoryRepository;
-        public ScoreController(IMemoryRepository memoryRepository)
+        private IMapper _mapper;
+
+        public ScoreController(IMemoryRepository memoryRepository, IMapper mapper)
         {
             _memoryRepository = memoryRepository;
+            _mapper = mapper;
         }
         [Authorize]
         [MemberAuthorize]
@@ -35,7 +38,7 @@ namespace Memory.API.Controllers
                     return NotFound();
             }
             var scoreEntity = _memoryRepository.GetScoresForUser(userId);
-            var scoreModel = Mapper.Map<IEnumerable<ScoreModel>>(scoreEntity);
+            var scoreModel = _mapper.Map<IEnumerable<ScoreModel>>(scoreEntity);
             return Ok(scoreModel);
         }
         [Authorize]
@@ -55,7 +58,7 @@ namespace Memory.API.Controllers
             {
                 return NotFound();
             }
-            var scoreModel = Mapper.Map<ScoreModel>(scoreEntity);
+            var scoreModel = _mapper.Map<ScoreModel>(scoreEntity);
             return Ok(scoreModel);
         }
         [Authorize]
@@ -79,13 +82,13 @@ namespace Memory.API.Controllers
             {
                     return NotFound();
             }
-            var scoreEntity = Mapper.Map<GameScore>(score);
+            var scoreEntity = _mapper.Map<GameScore>(score);
             _memoryRepository.CreateScoreForUser(userEntity, scoreEntity);
             if(!_memoryRepository.Save())
             {
                 throw new Exception($"Creating a score for user {userEntity.Id} failed on save.");
             }
-            var scoreModel = Mapper.Map<ScoreModel>(scoreEntity);
+            var scoreModel = _mapper.Map<ScoreModel>(scoreEntity);
             return CreatedAtRoute("GetScoreForUser", 
                     new { userId = userId, id = scoreModel.Id},
                     scoreModel);
@@ -135,7 +138,7 @@ namespace Memory.API.Controllers
                     return NotFound();
             }
             var scoreEntity = _memoryRepository.GetScoreForUser(userId, id);
-            Mapper.Map(scoreUpdateModel, scoreEntity);
+            _mapper.Map(scoreUpdateModel, scoreEntity);
             _memoryRepository.UpdateScoreForUser(scoreEntity);
             if(!_memoryRepository.Save())
             {

@@ -1,0 +1,13 @@
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/xunit.runner.visualstudio.dotnetcore.testadapter.dll
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/xunit.runner.utility.netstandard15.dll
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/Memory.Tests.deps.json
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/Memory.Tests.runtimeconfig.json
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/Memory.Tests.runtimeconfig.dev.json
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/Memory.Tests.dll
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/Memory.Tests.pdb
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/Memory.dll
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/Memory.pdb
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/obj/Debug/netcoreapp1.1/Memory.Tests.AssemblyInfo.cs
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/obj/Debug/netcoreapp1.1/Memory.Tests.dll
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/obj/Debug/netcoreapp1.1/Memory.Tests.pdb
+/Users/jimmy/Documents/DotNet/MemoryProject/Memory.Tests/bin/Debug/netcoreapp1.1/xunit.runner.reporters.netstandard15.dll

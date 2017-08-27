@@ -18,10 +18,12 @@ namespace Memory.API.Controllers
     public class UserController : Controller
     {
         private IMemoryRepository _memoryRepository;
+        private IMapper _mapper;
 
-        public UserController(IMemoryRepository memoryRepository)
+        public UserController(IMemoryRepository memoryRepository, IMapper mapper)
         {
             _memoryRepository = memoryRepository;
+            _mapper = mapper;
         }
         [HttpPost]
         public IActionResult CreateUser([FromBody]UserCreateModel userModel)
@@ -33,7 +35,7 @@ namespace Memory.API.Controllers
             {
                 return new UnprocessableEntityObjectResult(ModelState);
             }
-            var userEntity = Mapper.Map<GameUser>(userModel);
+            var userEntity = _mapper.Map<GameUser>(userModel);
             var userResult = _memoryRepository.AddGameUser(userEntity, userModel.Password).Result;
             if (!userResult.Succeeded)
             {
@@ -43,7 +45,7 @@ namespace Memory.API.Controllers
                 }
                 return new UnprocessableEntityObjectResult(ModelState);
             }
-            var userToReturn = Mapper.Map<UserModel>(userEntity);
+            var userToReturn = _mapper.Map<UserModel>(userEntity);
             return CreatedAtRoute("GetUser", new { id = userToReturn.Id}, userToReturn);
         }
         [Authorize]
@@ -59,14 +61,14 @@ namespace Memory.API.Controllers
             {
                     return NotFound();
             }
-            var user = Mapper.Map<UserModel>(userEntity);
+            var user = _mapper.Map<UserModel>(userEntity);
             return Ok(user);
         }
         [Authorize(Roles = "Admin")]
         public IActionResult GetUsers()
         {
             var userEntities = _memoryRepository.GetUsers();
-            var authors = Mapper.Map<IEnumerable<UserModel>>(userEntities);
+            var authors = _mapper.Map<IEnumerable<UserModel>>(userEntities);
             return Ok(authors);
         }
         
@@ -98,6 +100,10 @@ namespace Memory.API.Controllers
             if(userUpdateModel == null){
                 return BadRequest();
             }
+            if(!ModelState.IsValid)
+            {
+                return new UnprocessableEntityObjectResult(ModelState);
+            }
             if(id == "self")
                 id = _memoryRepository.GetUserId(this.User);
             
@@ -106,11 +112,7 @@ namespace Memory.API.Controllers
             {
                 return NotFound();
             }
-            if(!ModelState.IsValid)
-            {
-                return new UnprocessableEntityObjectResult(ModelState);
-            }
-            Mapper.Map(userUpdateModel, userEntity);
+            _mapper.Map<UserUpdateModel, GameUser>(userUpdateModel, userEntity);
             var userResult = _memoryRepository.UpdateGameUser(userEntity).Result;
             if (!userResult.Succeeded)
             {

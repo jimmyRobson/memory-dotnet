@@ -19,12 +19,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.Server.Kestrel;
 using Memory.API.Services;
+using AutoMapper;
 
 namespace memory_dotnet
 {
     public class Startup
     {
         private IHostingEnvironment _env;
+        private MapperConfiguration _mapperConfiguration;
 
         public Startup(IHostingEnvironment env)
         {
@@ -38,6 +40,18 @@ namespace memory_dotnet
             {
                 builder.AddUserSecrets<Startup>();
             }
+             _mapperConfiguration = new MapperConfiguration(cfg =>{
+                cfg.CreateMap<GameUser, UserModel>();
+                cfg.CreateMap<UserCreateModel, GameUser>()
+                    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
+                        $"{src.Email}"));
+                cfg.CreateMap<UserUpdateModel, GameUser>()
+                    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
+                        $"{src.Email}"));
+                cfg.CreateMap<GameScore, ScoreModel>();
+                cfg.CreateMap<ScoreCreateModel, GameScore>();
+                cfg.CreateMap<ScoreUpdateModel, GameScore>();
+            });
             Configuration = builder.Build();
         }
 
@@ -58,6 +72,7 @@ namespace memory_dotnet
             services.AddScoped<IMemoryRepository, MemoryRepository>();
             services.AddIdentity<GameUser, IdentityRole>()
                 .AddEntityFrameworkStores<MemoryContext>();
+            services.AddSingleton<IMapper>(sp => _mapperConfiguration.CreateMapper());
             
             services.Configure<MvcOptions>(options =>
             {
@@ -120,18 +135,6 @@ namespace memory_dotnet
             });
             app.UseStaticFiles();
             app.UseIdentity();
-            AutoMapper.Mapper.Initialize(cfg =>{
-                cfg.CreateMap<GameUser, UserModel>();
-                cfg.CreateMap<UserCreateModel, GameUser>()
-                    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
-                        $"{src.Email}"));
-                cfg.CreateMap<UserUpdateModel, GameUser>()
-                    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
-                        $"{src.Email}"));
-                cfg.CreateMap<GameScore, ScoreModel>();
-                cfg.CreateMap<ScoreCreateModel, GameScore>();
-                cfg.CreateMap<ScoreUpdateModel, GameScore>();
-            });
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
